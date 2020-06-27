@@ -1,72 +1,80 @@
 <template>
   <div>
-	  <div>
-	      <a-spin :spinning="spinning" :delay="delayTime">
-	        <div class="spin-content">
-			<div class="left">
-			  <a-progress :percent="30" />
-			  <a-progress :percent="50" status="active" />
-			  <a-progress :percent="70" status="exception" />
-			  <a-progress :percent="100" />
-			  <a-progress :percent="50" :show-info="false" />
-			</div>
-			
-			<div class="left">
-				<a-progress type="circle" :percent="75" />
-				<a-progress type="circle" :percent="70" status="exception" />
-				<a-progress type="circle" :percent="100" />
-			</div>
-	        </div>
-	      </a-spin>
-	      <!-- Loading state：<a-switch v-model="spinning" /> -->
-	    </div>
-	
-	
-  <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider>
-  <br>
-  
-  <center>
-	<a-upload
-    name="file"
-    :multiple="true"
-    action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-    :headers="headers"
-    @change="handleChange"
-  >
-    <a-button> <a-icon type="upload" /> Click to Upload File </a-button>
-  </a-upload>  
-  </center>
-	  
+    <div>
+      <a-spin :spinning="spinning" :delay="delayTime">
+        <div class="spin-content">
+          <div class="left">
+            <a-progress :percent="30" />
+            <a-progress :percent="50" status="active" />
+            <a-progress :percent="70" status="exception" />
+            <a-progress :percent="100" />
+            <a-progress :percent="50" :show-info="false" />
+          </div>
+
+          <div class="left">
+            <a-progress type="circle" :percent="75" />
+            <a-progress type="circle" :percent="70" status="exception" />
+            <a-progress type="circle" :percent="100" />
+          </div>
+        </div>
+      </a-spin>
+      <!-- Loading state：<a-switch v-model="spinning" /> -->
+    </div>
+
+    <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider>
+    <br />
+
+    <center>
+      <a-upload
+        name="csv"
+        accept=".csv"
+        :multiple="false"
+        action="/input/"
+        :headers="headers"
+        @change="handleChange"
+      >
+        <a-button
+          :disabled="uploadsuccess"
+        >
+          <a-icon type="upload" />
+          <span v-if="!uploadsuccess">上传文件</span>
+          <span v-else>上传成功</span>
+        </a-button>
+      </a-upload>
+    </center>
   </div>
-   
 </template>
 <script>
 export default {
   data() {
     return {
-	  spinning: false,
-	  delayTime: 500,
+      spinning: false,
+      uploadsuccess: false,
+      delayTime: 500,
       headers: {
-        authorization: 'authorization-text',
-      },
+        authorization: "authorization-text"
+      }
     };
   },
   methods: {
     handleChange(info) {
-      if (info.file.status !== 'uploading') {
+      if (info.file.status !== "uploading") {
         console.log(info.file, info.fileList);
-	    this.spinning = true;
+        this.spinning = true;
       }
-      if (info.file.status === 'done') {
-        this.$message.success(`${info.file.name} file uploaded successfully`);
-      } else if (info.file.status === 'error') {
-        this.$message.error(`${info.file.name} file upload failed.`);
+      if (info.file.status === "done") {
+        this.$message.success(`${info.file.name} 上传成功！`);
+        this.uploadsuccess = true
+      } else if (info.file.status === "error") {
+        this.$message.error(
+          `${info.file.name} 上传失败！原因:` + info.file.response.detail
+        );
       }
     },
-	changeSpinning() {
-	      this.spinning = !this.spinning;
-	    },
-  },
+    changeSpinning() {
+      this.spinning = !this.spinning;
+    },
+  }
 };
 </script>
 
@@ -77,10 +85,9 @@ export default {
   margin-bottom: 5px;
 }
 
-.left{
-	width: 500px;
-	margin: 50px;
-	float: left;
+.left {
+  width: 500px;
+  margin: 50px;
+  float: left;
 }
-
 </style>
