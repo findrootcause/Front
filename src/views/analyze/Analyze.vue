@@ -48,6 +48,7 @@
 export default {
   data() {
     return {
+      cause : {},
       spinning: false,
       uploadsuccess: false,
       delayTime: 500,
@@ -55,6 +56,9 @@ export default {
         authorization: "authorization-text"
       }
     };
+  },
+  created: function () {
+    this.findCause();
   },
   methods: {
     handleChange(info) {
@@ -73,6 +77,16 @@ export default {
     },
     changeSpinning() {
       this.spinning = !this.spinning;
+    },
+    findCause(){
+      this.$axios
+        .get("/analysis/dataclean/")
+        .then((response) => {
+          this.cause = response.data;
+        })
+        .catch((error) => {
+          this.$emit("on-error", error);
+        });
     },
   }
 };
