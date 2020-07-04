@@ -25,7 +25,7 @@ Vue.use(VueRouter)
   {
     path: '/nodetopo',
     name: 'nodetopo',
-    component: () => import(/* webpackChunkName: "about" */ '../views/topo/Nodetopo.vue')
+    component: () => import(/* webpackChunkName: "about" */ '../components/Nodetopo.vue')
   },
   {
     path: '/analyze',
