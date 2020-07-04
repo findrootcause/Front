@@ -1,22 +1,28 @@
 <template>
-  <div>
+  <center>
+    <div
+      v-if="appear"
+    >
     <h1>Sys_{{index}}内部节点拓扑图 :</h1>
-    <h3>前三列为系统内部node,最后一列为该系统所连接的其他系统</h3>
-    <center>
-      <div>
-        <!-- <img :src="imgArr[index-1]" alt="系统内部节点拓扑图"> -->
-        <div id="visualization"></div>
-      </div>
-      <a-pagination v-model:default-current="index" :total="100" />
-    </center>
-  </div>
+    <h5>前三列为系统内部node,最后一列为该系统所连接的其他系统</h5>
+    </div>
+    <div>
+      <div id="visualization"></div>
+    </div>
+    <a-pagination v-model:default-current="index" :total="100" />
+  </center>
 </template>
 
 <script>
 import { DataSet, Network } from "vis/index-network";
 export default {
-  name: "nodetopo",
-  data() {
+  name: "noderelationship",
+  props: {
+    appear: Boolean,
+    options: Object,
+    noderelat: Object,
+  },
+  data: function() {
     return {
       index: 1,
       network: null,
@@ -83,13 +89,31 @@ export default {
       ];
       var node = [];
       var sum = 0;
+      console.log(this.noderelat)
       imgArr[this.index-1].forEach((element, index_a) => {
         element.forEach((nodename, index_b) => {
           if (index_a !== 3){
-            node.push({
-            id: sum,
-            label: "Node " + String(nodename)
-          });
+            if(this.noderelat.hasOwnProperty("node_" + String(nodename))){
+              var kinds = this.noderelat["node_" + String(nodename)]["kinds"]
+              node.push({
+                id: sum,
+                label: "Node " + String(nodename),
+                chosen:false,
+                color: 
+                { 
+                  border: 'green',
+                  background: 'green',
+                },
+                title: '<span>原因种类：<var>$a</var></span>',
+                size:100
+              });
+            }
+            else{
+              node.push({
+              id: sum,
+              label: "Node " + String(nodename)
+            });
+            }
           }
           else{
             node.push({
@@ -160,48 +184,7 @@ export default {
         nodes: nodes,
         edges: edges
       };
-      var options = {
-        autoResize: false,
-        height: "400px",
-        width: "600px",
-        edges: {
-          arrows: {
-            to: {
-              enabled: true,
-              scaleFactor: 0.5,
-              type: "arrow"
-            }
-          },
-          chosen: false,
-          labelHighlightBold: false,
-          smooth: {
-            enabled: true,
-            type: "straightCross",
-            roundness: 1
-          }
-        },
-        interaction: {
-          dragNodes: false,
-          dragView: false,
-          selectable: false,
-          selectConnectedEdges: false,
-          tooltipDelay: 300,
-          zoomView: false
-        },
-        layout: {
-          randomSeed: undefined,
-          hierarchical: {
-            enabled: true,
-            parentCentralization: true,
-            direction: "LR", 
-            sortMethod: "directed",
-          }
-        },
-        physics: {
-          enabled: false
-        }
-      };
-      this.network = new Network(container, data, options);
+      this.network = new Network(container, data, this.options);
     }
   }
 };

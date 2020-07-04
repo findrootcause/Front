@@ -2,7 +2,7 @@
   <div>
     <span>批量处理:</span>
     <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
-        <div v-if="!batch">
+    <div v-if="!batch">
       <!-- <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider> -->
       <center>
         <span class="uptext">请上传时间片文件(.csv)以进行实时分析</span>
@@ -22,11 +22,19 @@
         </a-upload>
       </center>
       <div>
-          <Nodetopo/>
-        <br>
+        <br />
         <a-steps :current="current">
           <a-step v-for="item in steps" :key="item.title" :title="item.title" />
         </a-steps>
+        <div class="steps-content">
+          <a-spin v-if="loading" tip="结果分析中..."/>
+          <NodeRelationship
+            v-else
+            :appear="false"
+            :options="this.options"
+            :noderelat="this.dataclean_json[0]['node_detail']"
+          />
+        </div>
         <div class="steps-action">
           <a-button v-if="current < steps.length - 1" type="primary" @click="next">Next</a-button>
           <a-button
@@ -62,22 +70,23 @@
   </div>
 </template>
 <script>
-import Nodetopo from '../../components/Nodetopo';
+import NodeRelationship from "../../components/NodeRelationship";
 import { DataSet, Network } from "vis/index-network";
 export default {
-  name:'analyze',
-  components:{
-    Nodetopo
+  name: "analyze",
+  components: {
+    NodeRelationship
   },
   data() {
     return {
       cause: {},
       batch: true,
+      loading: true,
       index: 0,
       start: false,
       current: 0,
-      fileList:[],
-      csv_name:undefined,
+      fileList: [],
+      csv_name: undefined,
       datacleandata: undefined,
       dataclean_json: undefined,
       sysanalysis_json: undefined,
@@ -101,6 +110,49 @@ export default {
       delayTime: 500,
       headers: {
         authorization: "authorization-text"
+      },
+      options : {
+        autoResize: false,
+        height: "400px",
+        width: "600px",
+        edges: {
+          arrows: {
+            to: {
+              enabled: true,
+              scaleFactor: 0.5,
+              type: "arrow"
+            }
+          },
+          chosen: false,
+          labelHighlightBold: false,
+          smooth: {
+            enabled: true,
+            type: "straightCross",
+            roundness: 1
+          }
+        },
+        interaction: {
+          dragNodes: false,
+          dragView: false,
+          hover:true,
+          selectable: false,
+          selectConnectedEdges: false,
+          tooltipDelay: 300,
+          zoomView: false
+        },
+        layout: {
+          randomSeed: undefined,
+          hover: true,
+          hierarchical: {
+            enabled: true,
+            parentCentralization: true,
+            direction: "LR", 
+            sortMethod: "directed",
+          }
+        },
+        physics: {
+          enabled: false
+        }
       }
     };
   },
@@ -197,6 +249,7 @@ export default {
         })
         .then(response => {
           this.findcause_json = response.data;
+          this.loading = false
         })
         .catch(error => {
           this.$emit("on-error", error);
@@ -230,13 +283,12 @@ export default {
 }
 
 .steps-content {
-  margin-top: 16px;
   border: 1px dashed #e9e9e9;
   border-radius: 6px;
   background-color: #fafafa;
-  min-height: 400px;
+  min-height: 200px;
   text-align: center;
-  padding-top: 80px;
+  padding-top: 20px;
 }
 
 .steps-action {
@@ -248,7 +300,7 @@ export default {
   margin: 50px;
   float: left;
 }
-.uptext{
+.uptext {
   margin: 0 25px;
 }
 </style>
