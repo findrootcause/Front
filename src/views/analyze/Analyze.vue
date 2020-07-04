@@ -2,10 +2,11 @@
   <div>
     <span>批量处理:</span>
     <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
+    
     <div v-if="!batch">
-      <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider>
-      <br />
+      <!-- <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider> -->
       <center>
+        <span class="uptext">请上传时间片文件(.csv)以进行实时分析</span>
         <a-upload
           name="csv"
           accept=".csv"
@@ -22,15 +23,11 @@
         </a-upload>
       </center>
       <div>
+          <Nodetopo/>
+        <br>
         <a-steps :current="current">
           <a-step v-for="item in steps" :key="item.title" :title="item.title" />
         </a-steps>
-        <center>
-        <div class="steps-content">
-          <div id="visualization"></div>
-        </div>
-        <a-pagination v-model:default-current="index" :total="100" />
-        </center>
         <div class="steps-action">
           <a-button v-if="current < steps.length - 1" type="primary" @click="next">Next</a-button>
           <a-button
@@ -45,8 +42,12 @@
   </div>
 </template>
 <script>
+import Nodetopo from '../topo/Nodetopo.vue';
 import { DataSet, Network } from "vis/index-network";
 export default {
+  components:{
+    Nodetopo
+  },
   data() {
     return {
       cause: {},
@@ -178,7 +179,6 @@ export default {
   margin-right: 8px;
   margin-bottom: 5px;
 }
-
 .steps-content {
   margin-top: 16px;
   border: 1px dashed #e9e9e9;
@@ -188,14 +188,15 @@ export default {
   text-align: center;
   padding-top: 80px;
 }
-
 .steps-action {
   margin-top: 24px;
 }
-
 .left {
   width: 500px;
   margin: 50px;
   float: left;
+}
+.uptext{
+  margin: 0 25px;
 }
 </style>
