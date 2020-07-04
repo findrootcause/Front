@@ -26,10 +26,10 @@
           <a-step v-for="item in steps" :key="item.title" :title="item.title" />
         </a-steps>
         <center>
-        <div class="steps-content">
-          <div id="visualization"></div>
-        </div>
-        <a-pagination v-model:default-current="index" :total="100" />
+          <div class="steps-content">
+            <div id="visualization"></div>
+          </div>
+          <a-pagination v-model:default-current="index" :total="100" />
         </center>
         <div class="steps-action">
           <a-button v-if="current < steps.length - 1" type="primary" @click="next">Next</a-button>
@@ -42,6 +42,27 @@
         </div>
       </div>
     </div>
+    <div v-else>
+      <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider>
+      <br />
+      <center>
+        <a-upload
+          name="csv"
+          accept=".csv"
+          :multiple="true"
+          action="/input/"
+          :file-list="fileList"
+          :headers="headers"
+          @change="handleChanges"
+        >
+          <a-button :disabled="start">
+            <a-icon type="upload" />
+            <span>批量上传文件</span>
+          </a-button>
+        </a-upload>
+        <a-button type="primary" @click="startanalysis">开始分析</a-button>
+      </center>
+    </div>
   </div>
 </template>
 <script>
@@ -52,7 +73,10 @@ export default {
       cause: {},
       batch: true,
       index: 0,
+      start: false,
       current: 0,
+      fileList:[],
+      csv_name:undefined,
       datacleandata: undefined,
       dataclean_json: undefined,
       sysanalysis_json: undefined,
@@ -95,6 +119,24 @@ export default {
         );
       }
     },
+    handleChanges(info) {
+      if (info.file.status === "done") {
+        this.$message.success(`${info.file.name} 上传成功！`);
+      } else if (info.file.status === "error") {
+        this.$message.error(
+          `${info.file.name} 上传失败！原因:` + info.file.response.detail
+        );
+      }
+      let fileList = [...info.fileList];
+      fileList = fileList.slice(-20);
+      fileList = fileList.map(file => {
+        if (file.response) {
+          file.url = file.response.url;
+        }
+        return file;
+      });
+      this.fileList = fileList;
+    },
     onChange(checked) {
       console.log(`a-switch to ${checked}`);
       this.batch = checked;
@@ -111,6 +153,7 @@ export default {
         .then(response => {
           this.datacleandata = response.data["datacleandata"];
           this.dataclean_json = response.data["dataclean_json"];
+          this.csv_name = response.data["csv_name"];
           this.sysanalysis();
         })
         .catch(error => {
@@ -158,11 +201,17 @@ export default {
           this.$emit("on-error", error);
         });
     },
+    startanalysis() {
+      this.start = true;
+      this.moreanalysis();
+    },
     moreanalysis() {
       this.$axios
         .get("/analysis/moreanalysis/")
         .then(response => {
-          this.cause = response.data;
+          this.findcause_json = response.data["findcause_json"];
+          this.findrootnode_json = response.data["findrootnode_json"];
+          this.csv_name = response.data["csv_name"];
         })
         .catch(error => {
           this.$emit("on-error", error);
