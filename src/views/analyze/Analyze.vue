@@ -3,7 +3,6 @@
     <span>批量处理:</span>
     <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
     <div v-if="!batch">
-      <!-- <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider> -->
       <center>
         <span class="uptext">请上传时间片文件(.csv)以进行实时分析</span>
         <a-upload
@@ -65,6 +64,10 @@
           </a-button>
         </a-upload>
         <a-button type="primary" @click="startanalysis">开始分析</a-button>
+       <a-table :columns="columns" :data-source="info">
+       <a slot="name" slot-scope="text">{{ text }}</a>
+       <span slot="customTitle">filename</span>
+       </a-table>
       </center>
     </div>
   </div>
@@ -72,6 +75,28 @@
 <script>
 import NodeRelationship from "../../components/NodeRelationship";
 import { DataSet, Network } from "vis/index-network";
+const columns = [
+  {
+    dataIndex: 'name',
+    key: 'name',
+    slots: { title: 'customTitle' },
+    scopedSlots: { customRender: 'name' },
+    align: 'center'
+  },
+  {
+    title: 'rootnode',
+    dataIndex: 'rootnode',
+    key: 'rootnode',
+    align: 'center'
+  },
+  {
+    title: 'rootcause',
+    dataIndex: 'rootcause',
+    key: 'rootcause',
+    align: 'center'
+  },
+];
+var info = [];
 export default {
   name: "analyze",
   components: {
@@ -79,6 +104,8 @@ export default {
   },
   data() {
     return {
+      info,
+      columns,
       cause: {},
       batch: true,
       loading: true,
@@ -175,6 +202,8 @@ export default {
     handleChanges(info) {
       if (info.file.status === "done") {
         this.$message.success(`${info.file.name} 上传成功！`);
+        //this.findrootnode();
+        //console.log(JSON.parse(findcause_json));
       } else if (info.file.status === "error") {
         this.$message.error(
           `${info.file.name} 上传失败！原因:` + info.file.response.detail
@@ -258,6 +287,7 @@ export default {
     startanalysis() {
       this.start = true;
       this.moreanalysis();
+      //this.findrootnode();
     },
     moreanalysis() {
       this.$axios
@@ -266,6 +296,15 @@ export default {
           this.findcause_json = response.data["findcause_json"];
           this.findrootnode_json = response.data["findrootnode_json"];
           this.csv_name = response.data["csv_name"];
+          for(var i = 0; i < this.csv_name.length; i++){
+            if(this.findrootnode_json[i]=='0') {this.findrootnode_json[i] = '无'}
+            this.info.push({
+            key: ''+i,
+            name: this.csv_name[i],
+            rootnode: this.findrootnode_json[i],
+            rootcause: this.findcause_json[i]
+         })
+        };
         })
         .catch(error => {
           this.$emit("on-error", error);
