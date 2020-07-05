@@ -2,6 +2,9 @@
   <div>
     <span>批量处理:</span>
     <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
+    <a-button type="primary" @click="refresh">
+      <span>新的分析</span>
+    </a-button>
     <div v-if="!batch">
       <center>
         <span class="uptext">请上传时间片文件(.csv)以进行实时分析</span>
@@ -25,14 +28,35 @@
         <a-steps :current="current">
           <a-step v-for="item in steps" :key="item.title" :title="item.title" />
         </a-steps>
-        <div class="steps-content">
-          <a-spin v-if="loading" tip="结果分析中..."/>
-          <NodeRelationship
-            v-else
-            :appear="false"
-            :options="this.options"
-            :noderelat="this.dataclean_json[0]['node_detail']"
-          />
+        <div v-if="uploadsuccess" class="steps-content">
+          <a-row>
+            <a-col :span="4">
+              <span>缩放:</span>
+              <a-switch
+                checked-children="开启"
+                un-checked-children="关闭"
+                default-checked
+                @change="onChangeZoom"
+              />
+              <br>
+              <span>移动:</span>
+              <a-switch
+                checked-children="开启"
+                un-checked-children="关闭"
+                default-checked
+                @change="onChangeMove"
+              />
+            </a-col>
+            <a-col :span="8">
+              <a-spin v-if="loading" tip="结果分析中..." />
+              <NodeRelationship
+                v-else
+                :appear="false"
+                :options="this.options"
+                :noderelat="this.dataclean_json[0]['node_detail']"
+              />
+            </a-col>
+          </a-row>
         </div>
         <div class="steps-action">
           <a-button v-if="current < steps.length - 1" type="primary" @click="next">Next</a-button>
@@ -63,11 +87,11 @@
             <span>批量上传文件</span>
           </a-button>
         </a-upload>
-        <a-button type="primary" @click="startanalysis">开始分析</a-button>
-       <a-table :columns="columns" :data-source="info">
-       <a slot="name" slot-scope="text">{{ text }}</a>
-       <span slot="customTitle">filename</span>
-       </a-table>
+        <a-button v-if="!start" type="primary" @click="startanalysis">开始分析</a-button>
+        <a-table :loading="!havedata" v-else :columns="columns" :data-source="info">
+          <a slot="name" slot-scope="text">{{ text }}</a>
+          <span slot="customTitle">filename</span>
+        </a-table>
       </center>
     </div>
   </div>
@@ -77,26 +101,25 @@ import NodeRelationship from "../../components/NodeRelationship";
 import { DataSet, Network } from "vis/index-network";
 const columns = [
   {
-    dataIndex: 'name',
-    key: 'name',
-    slots: { title: 'customTitle' },
-    scopedSlots: { customRender: 'name' },
-    align: 'center'
+    dataIndex: "name",
+    key: "name",
+    slots: { title: "customTitle" },
+    scopedSlots: { customRender: "name" },
+    align: "center"
   },
   {
-    title: 'rootnode',
-    dataIndex: 'rootnode',
-    key: 'rootnode',
-    align: 'center'
+    title: "rootnode",
+    dataIndex: "rootnode",
+    key: "rootnode",
+    align: "center"
   },
   {
-    title: 'rootcause',
-    dataIndex: 'rootcause',
-    key: 'rootcause',
-    align: 'center'
-  },
+    title: "rootcause",
+    dataIndex: "rootcause",
+    key: "rootcause",
+    align: "center"
+  }
 ];
-var info = [];
 export default {
   name: "analyze",
   components: {
@@ -104,8 +127,9 @@ export default {
   },
   data() {
     return {
-      info,
+      info: [],
       columns,
+      havedata: false,
       batch: true,
       loading: true,
       start: false,
@@ -117,29 +141,26 @@ export default {
       sysanalysis_json: undefined,
       findrootnode_json: undefined,
       findcause_json: undefined,
+      uploadsuccess: false,
       steps: [
         {
-          title: "初始数据可视化",
-          content: "First-content"
+          title: "初始数据可视化"
         },
         {
-          title: "相关sys数据可视化",
-          content: "Second-content"
+          title: "相关sys数据可视化"
         },
         {
-          title: "输出结果",
-          content: "Last-content"
+          title: "输出结果"
         }
       ],
-      uploadsuccess: false,
       delayTime: 500,
       headers: {
         authorization: "authorization-text"
       },
-      options : {
+      options: {
         autoResize: false,
         height: "400px",
-        width: "600px",
+        width: "900px",
         edges: {
           arrows: {
             to: {
@@ -158,20 +179,20 @@ export default {
         },
         interaction: {
           dragNodes: false,
-          dragView: false,
-          hover:true,
+          dragView: true,
+          hover: true,
           selectable: false,
           selectConnectedEdges: false,
           tooltipDelay: 300,
-          zoomView: false
+          zoomView: true
         },
         layout: {
           randomSeed: undefined,
           hierarchical: {
             enabled: true,
             parentCentralization: true,
-            direction: "LR", 
-            sortMethod: "directed",
+            direction: "LR",
+            sortMethod: "directed"
           }
         },
         physics: {
@@ -207,7 +228,7 @@ export default {
         );
       }
       let fileList = [...info.fileList];
-      fileList = fileList.slice(-20);
+      fileList = fileList.slice(-5);
       fileList = fileList.map(file => {
         if (file.response) {
           file.url = file.response.url;
@@ -217,18 +238,47 @@ export default {
       this.fileList = fileList;
     },
     onChange(checked) {
-      //console.log(`a-switch to ${checked}`);
+      (this.info = []), (this.havedata = false);
       this.batch = checked;
-      this.loading= true
-      this.start= false
-      this.current= 0
-      this.fileList= []
-      this.csv_name= undefined
-      this.datacleandata= undefined
-      this.dataclean_json= undefined
-      this.sysanalysis_json= undefined
-      this.findrootnode_json= undefined
-      this.findcause_json= undefined
+      this.loading = true;
+      this.start = false;
+      this.current = 0;
+      this.fileList = [];
+      this.csv_name = undefined;
+      this.datacleandata = undefined;
+      this.dataclean_json = undefined;
+      this.sysanalysis_json = undefined;
+      this.findrootnode_json = undefined;
+      this.findcause_json = undefined;
+      this.uploadsuccess = false;
+    },
+    onChangeZoom(checked) {
+      this.$set(this.options.interaction, "zoomView", checked);
+      this.loading = true;
+      this.$nextTick(() => {
+        this.loading = false;
+      });
+    },
+    onChangeMove(checked){
+      this.$set(this.options.interaction, "dragView", checked);
+      this.loading = true;
+      this.$nextTick(() => {
+        this.loading = false;
+      });
+    },
+    refresh() {
+      (this.info = []), (this.havedata = false);
+      this.loading = true;
+      this.start = false;
+      this.current = 0;
+      this.fileList = [];
+      this.csv_name = undefined;
+      this.datacleandata = undefined;
+      this.dataclean_json = undefined;
+      this.sysanalysis_json = undefined;
+      this.findrootnode_json = undefined;
+      this.findcause_json = undefined;
+      this.uploadsuccess = false;
     },
     next() {
       this.current++;
@@ -285,7 +335,7 @@ export default {
         })
         .then(response => {
           this.findcause_json = response.data;
-          this.loading = false
+          this.loading = false;
         })
         .catch(error => {
           this.$emit("on-error", error);
@@ -303,15 +353,18 @@ export default {
           this.findcause_json = response.data["findcause_json"];
           this.findrootnode_json = response.data["findrootnode_json"];
           this.csv_name = response.data["csv_name"];
-          for(var i = 0; i < this.csv_name.length; i++){
-            if(this.findrootnode_json[i]=='0') {this.findrootnode_json[i] = '无'}
+          for (var i = 0; i < this.csv_name.length; i++) {
+            if (this.findrootnode_json[i] == "0") {
+              this.findrootnode_json[i] = "无";
+            }
             this.info.push({
-            key: ''+i,
-            name: this.csv_name[i],
-            rootnode: this.findrootnode_json[i],
-            rootcause: this.findcause_json[i]
-         })
-        };
+              key: "" + i,
+              name: this.csv_name[i],
+              rootnode: this.findrootnode_json[i],
+              rootcause: this.findcause_json[i]
+            });
+          }
+          this.havedata = true;
         })
         .catch(error => {
           this.$emit("on-error", error);

@@ -8,8 +8,8 @@
     </div>
     <div>
       <div id="visualization"></div>
+      <a-pagination v-model:default-current="index" :total="100" />
     </div>
-    <a-pagination v-model:default-current="index" :total="100" />
   </center>
 </template>
 
@@ -95,6 +95,8 @@ export default {
           if (index_a !== 3){
             if(this.noderelat.hasOwnProperty("node_" + String(nodename))){
               var kinds = this.noderelat["node_" + String(nodename)]["kinds"]
+              var times = this.noderelat["node_" + String(nodename)]["times"]
+              var kind = String(JSON.stringify(this.noderelat["node_" + String(nodename)]["kind"])).replace(/,/g,'<br>').replace(/{|}/g,'').replace(/[\*]+/g,'*')
               node.push({
                 id: sum,
                 label: "Node " + String(nodename),
@@ -104,7 +106,7 @@ export default {
                   border: 'green',
                   background: 'green',
                 },
-                title: '<span>原因种类：<var>$a</var></span>',
+                title: '<span>告警信息种类数：</span>'+kinds+"<br>"+"<span>告警信息：次数：</span><br>"+kind+"<br><span>一共告警次数：</span>"+times+"<span>次</span>",
                 size:100
               });
             }
