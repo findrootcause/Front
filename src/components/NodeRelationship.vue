@@ -89,7 +89,7 @@ export default {
       ];
       var node = [];
       var sum = 0;
-      console.log(this.noderelat)
+      //console.log(this.noderelat)
       imgArr[this.index-1].forEach((element, index_a) => {
         element.forEach((nodename, index_b) => {
           if (index_a !== 3){

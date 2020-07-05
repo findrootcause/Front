@@ -106,10 +106,8 @@ export default {
     return {
       info,
       columns,
-      cause: {},
       batch: true,
       loading: true,
-      index: 0,
       start: false,
       current: 0,
       fileList: [],
@@ -169,7 +167,6 @@ export default {
         },
         layout: {
           randomSeed: undefined,
-          hover: true,
           hierarchical: {
             enabled: true,
             parentCentralization: true,
@@ -220,8 +217,18 @@ export default {
       this.fileList = fileList;
     },
     onChange(checked) {
-      console.log(`a-switch to ${checked}`);
+      //console.log(`a-switch to ${checked}`);
       this.batch = checked;
+      this.loading= true
+      this.start= false
+      this.current= 0
+      this.fileList= []
+      this.csv_name= undefined
+      this.datacleandata= undefined
+      this.dataclean_json= undefined
+      this.sysanalysis_json= undefined
+      this.findrootnode_json= undefined
+      this.findcause_json= undefined
     },
     next() {
       this.current++;
