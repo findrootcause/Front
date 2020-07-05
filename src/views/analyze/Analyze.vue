@@ -3,7 +3,6 @@
     <span>批量处理:</span>
     <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
     <div v-if="!batch">
-      
       <center>
         <span class="uptext">请上传时间片文件(.csv)以进行实时分析</span>
         <a-upload
@@ -103,7 +102,6 @@ export default {
   components: {
     NodeRelationship
   },
-  
   data() {
     return {
       info,
