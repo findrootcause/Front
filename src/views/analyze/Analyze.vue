@@ -103,21 +103,7 @@ export default {
   components: {
     NodeRelationship
   },
-  // computed:{
-  //   info() {
-  //     var list = [];
-  //     for(let i = 0; i < this.csv_name.length; i++){
-  //       list.push({
-  //         key: i,
-  //         name: this.csv_name[i],
-  //         rootnode: findrootnode[i],
-  //         rootcause: findcause_json[i]
-  //       })
-  //     }
-
-  //   }
-  // },
-
+  
   data() {
     return {
       info,
