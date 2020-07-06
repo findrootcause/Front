@@ -1,7 +1,7 @@
 <template>
   <div>
+	   <h1>Sys关系拓扑图 :</h1>
     <center>
-      <h1>Sys关系拓扑图 :</h1>
       <div>
         <div id="visualization"></div>
       </div>

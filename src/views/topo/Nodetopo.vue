@@ -18,7 +18,7 @@ export default {
     return {
       options : {
         autoResize: false,
-        height: "500px",
+        height: "400px",
         width: "600px",
         edges: {
           arrows: {

@@ -2,7 +2,7 @@
   <div>
     <span>批量处理:</span>
     <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
-    <a-button type="primary" @click="refresh">
+    <a-button type="primary" @click="refresh" class="new">
       <span>新的分析</span>
     </a-button>
     <div v-if="!batch">
@@ -38,7 +38,7 @@
                 default-checked
                 @change="onChangeZoom"
               />
-              <br>
+              <br><br>
               <span>移动:</span>
               <a-switch
                 checked-children="开启"
@@ -59,11 +59,12 @@
           </a-row>
         </div>
         <div class="steps-action">
-          <a-button v-if="current < steps.length - 1" type="primary" @click="next">Next</a-button>
+          <a-button v-if="current < steps.length - 1" type="primary" @click="next" class="new">Next</a-button>
           <a-button
             v-if="current == steps.length - 1"
             type="primary"
             @click="$message.success('分析结果成功！')"
+			class="new"
           >Done</a-button>
           <a-button v-if="current > 0" style="margin-left: 8px" @click="prev">Previous</a-button>
         </div>
@@ -87,6 +88,7 @@
             <span>批量上传文件</span>
           </a-button>
         </a-upload>
+        <br>
         <a-button v-if="!start" type="primary" @click="startanalysis">开始分析</a-button>
         <a-table :loading="!havedata" v-else :columns="columns" :data-source="info">
           <a slot="name" slot-scope="text">{{ text }}</a>
@@ -401,5 +403,8 @@ export default {
 }
 .uptext {
   margin: 0 25px;
+}
+.new{
+  float: right;
 }
 </style>
