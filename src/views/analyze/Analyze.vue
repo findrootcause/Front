@@ -1,7 +1,7 @@
 <template>
   <div>
     <span>批量处理:</span>
-    <a-switch checked-children="开启" un-checked-children="关闭" default-checked @change="onChange" />
+    <a-switch checked-children="开启" un-checked-children="关闭" @change="onChange" />
     <a-button type="primary" @click="refresh" class="new">
       <span>新的分析</span>
     </a-button>
@@ -38,7 +38,8 @@
                 default-checked
                 @change="onChangeZoom"
               />
-              <br><br>
+              <br />
+              <br />
               <span>移动:</span>
               <a-switch
                 checked-children="开启"
@@ -63,10 +64,37 @@
               />
             </a-col>
             <a-col v-else>
-              <a-table :loading="loading" :columns="columns" :data-source="info">
-                <a slot="name" slot-scope="text">{{ text }}</a>
-                <span slot="customTitle">filename</span>
-              </a-table>
+              <a-row  v-if="this.findrootnode_json[0] !== '无'">
+                <a-col :span="4">
+                  <span>缩放:</span>
+                  <a-switch
+                    checked-children="开启"
+                    un-checked-children="关闭"
+                    default-checked
+                    @change="onChangeZoom2"
+                  />
+                  <br />
+                  <br />
+                  <span>移动:</span>
+                  <a-switch
+                    checked-children="开启"
+                    un-checked-children="关闭"
+                    default-checked
+                    @change="onChangeMove2"
+                  />
+                </a-col>
+                <a-col :span="8">
+                  <Causevisualization
+                    v-if="visualization"
+                    :options="this.options"
+                    :thenode="this.node"
+                    :theedge="this.edge"
+                  />
+                </a-col>
+              </a-row>
+              <a-row>
+                <a-table :loading="loading" :columns="columns" :data-source="info"></a-table>
+              </a-row>
             </a-col>
           </a-row>
         </div>
@@ -76,16 +104,15 @@
             v-if="current == steps.length - 1"
             type="primary"
             @click="$message.success('分析结果成功！')"
-			class="new"
+            class="new"
           >Done</a-button>
           <a-button v-if="current > 0" style="margin-left: 8px" @click="prev">Previous</a-button>
         </div>
       </div>
     </div>
     <div v-else>
-      <a-divider>请上传时间片文件(.csv)以进行实时分析</a-divider>
-      <br />
       <center>
+        <span class="uptext">请上传时间片文件(.csv)以进行实时分析</span>
         <a-upload
           name="csv"
           accept=".csv"
@@ -100,9 +127,9 @@
             <span>批量上传文件</span>
           </a-button>
         </a-upload>
-        <br>
+        <br />
         <a-button v-if="!start" type="primary" @click="startanalysis">开始分析</a-button>
-        <a-table :loading="!havedata" v-else :columns="columns" :data-source="info">
+        <a-table v-else :columns="columns" :data-source="info">
           <a slot="name" slot-scope="text">{{ text }}</a>
           <span slot="customTitle">filename</span>
         </a-table>
@@ -113,22 +140,23 @@
 <script>
 import NodeRelationship from "../../components/NodeRelationship";
 import CommonDraw from "../../components/CommonDraw";
+import Causevisualization from "../../components/Causevisualization";
 import { DataSet, Network } from "vis/index-network";
 const columns = [
   {
     dataIndex: "name",
     key: "name",
-    title: "customTitle" ,
+    title: "文件名",
     align: "center"
   },
   {
-    title: "rootnode",
+    title: "根因节点",
     dataIndex: "rootnode",
     key: "rootnode",
     align: "center"
   },
   {
-    title: "rootcause",
+    title: "根因",
     dataIndex: "rootcause",
     key: "rootcause",
     align: "center"
@@ -138,18 +166,21 @@ export default {
   name: "analyze",
   components: {
     NodeRelationship,
-    CommonDraw
+    CommonDraw,
+    Causevisualization
   },
   data() {
     return {
+      node: undefined,
+      edge: undefined,
       info: [],
       columns,
-      havedata: false,
-      batch: true,
+      batch: false,
       loading: true,
       start: false,
-      sys_view:false,
-      cause_view : false,
+      sys_view: false,
+      cause_view: false,
+      visualization:true,
       current: 0,
       fileList: [],
       csv_name: undefined,
@@ -208,7 +239,7 @@ export default {
           hierarchical: {
             enabled: true,
             parentCentralization: true,
-            treeSpacing:40,
+            treeSpacing: 40,
             direction: "LR",
             sortMethod: "directed"
           }
@@ -256,13 +287,18 @@ export default {
       this.fileList = fileList;
     },
     onChange(checked) {
-      this.info = [],
-      this.havedata = false;
+      if (checked) {
+        this.moreanalysis();
+      }
+      this.node = undefined;
+      this.edge = undefined;
+      this.info = [];
       this.batch = checked;
       this.loading = true;
       this.start = false;
       this.sys_view = false;
       this.cause_view = false;
+      this.visualization= true;
       this.current = 0;
       this.fileList = [];
       this.csv_name = undefined;
@@ -280,20 +316,39 @@ export default {
         this.loading = false;
       });
     },
-    onChangeMove(checked){
+    onChangeZoom2(checked) {
+      this.$set(this.options.interaction, "zoomView", checked);
+      this.visualization = false;
+      this.$nextTick(() => {
+        this.visualization = true;
+      });
+    },
+    onChangeMove(checked) {
       this.$set(this.options.interaction, "dragView", checked);
       this.loading = true;
       this.$nextTick(() => {
         this.loading = false;
       });
     },
+    onChangeMove2(checked) {
+      this.$set(this.options.interaction, "dragView", checked);
+      this.visualization=false;
+      this.$nextTick(() => {
+        this.visualization = true;
+      });
+    },
     refresh() {
-      this.info = [], 
-      this.havedata = false;
+      if (this.batch) {
+        this.moreanalysis();
+      }
+      this.node = undefined;
+      this.edge = undefined;
+      this.info = [];
       this.loading = true;
       this.start = false;
       this.sys_view = false;
       this.cause_view = false;
+      this.visualization= true;
       this.current = 0;
       this.fileList = [];
       this.csv_name = undefined;
@@ -306,32 +361,28 @@ export default {
     },
     next() {
       this.current++;
-      if(this.current === 1){
-        this.sys_view = true
+      if (this.current === 1) {
+        this.sys_view = true;
+      } else {
+        this.sys_view = false;
       }
-      else{
-        this.sys_view = false
-      }
-      if(this.current === 2){
-        this.cause_view = true
-      }
-      else{
-        this.cause_view = false
+      if (this.current === 2) {
+        this.cause_view = true;
+      } else {
+        this.cause_view = false;
       }
     },
     prev() {
       this.current--;
-      if(this.current === 1){
-        this.sys_view = true
+      if (this.current === 1) {
+        this.sys_view = true;
+      } else {
+        this.sys_view = false;
       }
-      else{
-        this.sys_view = false
-      }
-      if(this.current === 2){
-        this.cause_view = true
-      }
-      else{
-        this.cause_view = false
+      if (this.current === 2) {
+        this.cause_view = true;
+      } else {
+        this.cause_view = false;
       }
     },
     dataclean() {
@@ -384,15 +435,33 @@ export default {
         .then(response => {
           this.findcause_json = response.data;
           if (this.findrootnode_json[0] == "0") {
-              this.findrootnode_json[0] = "无";
-            }
+            this.findrootnode_json[0] = "无";
+          }
           this.info.push({
-              key: 0,
-              name: this.csv_name[0],
-              rootnode: this.findrootnode_json[0],
-              rootcause: this.findcause_json[0]
-            });
+            key: 0,
+            name: this.csv_name[0],
+            rootnode: this.findrootnode_json[0],
+            rootcause: this.findcause_json[0]
+          });
           this.loading = false;
+          if (this.findrootnode_json[0] !== "无") {
+            this.causevisualization();
+          }
+        })
+        .catch(error => {
+          this.$emit("on-error", error);
+        });
+    },
+    causevisualization() {
+      this.$axios
+        .post("/analysis/partvisualization/", {
+          nodedetail: this.dataclean_json[0]["node_detail"],
+          rootnode: this.findrootnode_json["0"],
+          rootcause: this.findcause_json["0"]
+        })
+        .then(response => {
+          this.node = response.data["node"];
+          this.edge = response.data["edge"];
         })
         .catch(error => {
           this.$emit("on-error", error);
@@ -420,7 +489,6 @@ export default {
               rootcause: this.findcause_json[i]
             });
           }
-          this.havedata = true;
         })
         .catch(error => {
           this.$emit("on-error", error);
@@ -458,7 +526,7 @@ export default {
 .uptext {
   margin: 0 25px;
 }
-.new{
+.new {
   float: right;
 }
 </style>
