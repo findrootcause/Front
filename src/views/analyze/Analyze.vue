@@ -269,8 +269,6 @@ export default {
     handleChanges(info) {
       if (info.file.status === "done") {
         this.$message.success(`${info.file.name} 上传成功！`);
-        //this.findrootnode();
-        //console.log(JSON.parse(findcause_json));
       } else if (info.file.status === "error") {
         this.$message.error(
           `${info.file.name} 上传失败！原因:` + info.file.response.detail

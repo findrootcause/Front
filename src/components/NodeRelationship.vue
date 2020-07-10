@@ -2,13 +2,11 @@
 	<div>
 		<div v-if="appear">
 		<h1>Sys_{{index}}内部节点拓扑图 :</h1>
-		<h5>前三列为系统内部node,最后一列为该系统所连接的其他系统</h5>
+		<h4>前三列为系统内部node,最后一列为该系统所连接的其他系统</h4>
 		</div>
 	  <center>
-		<div>
 		  <div id="visualization"></div>
 		  <a-pagination v-model:default-current="index" :total="100" />
-		</div>
 	  </center>	
 	</div>
 	

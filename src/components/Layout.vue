@@ -25,19 +25,6 @@
           <a-icon type="desktop" />
           <span>实时分析</span>
         </a-menu-item>
-        <!-- <a-sub-menu key="sub2">
-          <span slot="title"><a-icon type="team" /><span>Team</span></span>
-          <a-menu-item key="6">
-            Team 1
-          </a-menu-item>
-          <a-menu-item key="8">
-            Team 2
-          </a-menu-item>
-        </a-sub-menu> -->
-        <!-- <a-menu-item key="9">
-          <a-icon type="file" />
-          <span>File</span>
-        </a-menu-item> -->
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -51,9 +38,6 @@
           <router-view></router-view>
         </div>
       </a-layout-content>
-      <!-- <a-layout-footer style="text-align: center">
-        Ant Design ©2018 Created by Ant UED
-      </a-layout-footer> -->
     </a-layout>
   </a-layout>
 </template>
@@ -91,7 +75,8 @@ export default {
 <style>
 #components-layout-demo-side .logo {
   height: 32px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #001529 url(./logo.png) no-repeat;
+  background-size: 168px 32px;
   margin: 16px;
 }
 </style>

@@ -1,6 +1,7 @@
 <template>
   <div>
-	   <h1>Sys关系拓扑图 :</h1>
+    <h1>Sys关系拓扑图 :</h1>
+    <h4>Sys_{{index}}所连接的系统</h4>
     <center>
       <div>
         <div id="visualization"></div>
@@ -18,16 +19,16 @@ export default {
     return {
       index: 1,
       network: null,
-      img0:[7,9],
-      img1:[8],
-      img2:[6,8],
-      img3:[1,5],
-      img4:[6,7],
-      img5:[4,10],
-      img6:[3,10],
-      img7:[4],
-      img8:[2],
-      img9:[4,2]
+      img0: [7, 9],
+      img1: [8],
+      img2: [6, 8],
+      img3: [1, 5],
+      img4: [6, 7],
+      img5: [4, 10],
+      img6: [3, 10],
+      img7: [4],
+      img8: [2],
+      img9: [4, 2]
     };
   },
   computed: {
@@ -47,23 +48,21 @@ export default {
       var node = [];
       var sum = 1;
       node.push({
-        id:0,
+        id: 0,
         label: "Sys" + this.index
-      })
-      imgArr[this.index-1].forEach((element, index_a) => {
-         
-            node.push({
-            id: sum,
-            label: "Sys " + element
-          });
-          
-          
-          
-          sum += 1;
+      });
+      imgArr[this.index - 1].forEach((element, index_a) => {
+        node.push({
+          id: sum,
+          label: "Sys " + element
         });
+
+        sum += 1;
+      });
       return node;
     },
-    edges: function() {1
+    edges: function() {
+      1;
       var imgArr = [
         this.img0,
         this.img1,
@@ -77,7 +76,7 @@ export default {
         this.img9
       ];
       var line = [];
-      imgArr[this.index-1].forEach((element, index_a) => {
+      imgArr[this.index - 1].forEach((element, index_a) => {
         // if (index_a !== 3) {
         //   var to = imgArr[this.index-1][index_a+1]
         //   element.forEach((nodename,index_b) => {
@@ -92,16 +91,16 @@ export default {
         // }
         line.push({
           from: 0,
-          to: index_a+1
-        })
+          to: index_a + 1
+        });
       });
 
       return line;
     }
   },
   watch: {
-    index: function (newindex) {
-      this.network.destroy()
+    index: function(newindex) {
+      this.network.destroy();
       this.create();
     }
   },
@@ -110,13 +109,9 @@ export default {
   },
   methods: {
     create() {
-      var nodes = new DataSet(
-        this.nodes
-      );
+      var nodes = new DataSet(this.nodes);
       // create an array with edges
-      var edges = new DataSet(
-        this.edges
-      )
+      var edges = new DataSet(this.edges);
       // create a network
       var container = document.querySelector("#visualization");
       // provide the data in the vis format
@@ -157,8 +152,8 @@ export default {
           hierarchical: {
             enabled: true,
             parentCentralization: true,
-            direction: "LR", 
-            sortMethod: "directed",
+            direction: "LR",
+            sortMethod: "directed"
           }
         },
         physics: {
